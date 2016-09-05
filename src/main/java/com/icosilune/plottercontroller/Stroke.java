@@ -28,21 +28,22 @@ public class Stroke {
     return numberDataPoints;
   }
   
-  public double readData(int point, DataChannel channel) {
-    return dataBuffers.get(channel)[point];
+  public DataPoint getPoint(int index) {
+    return new StrokeDataPoint(index);
   }
-  
-  // non static
-  // is there a better way of doing this????
-//  public class DataPoint {
-//    private final int index;
-//
-//    DataPoint(int index) {
-//      this.index = index;
-//    }
-//    
-//    public double getValue(DataChannel channel) {
-//      return dataBuffers.get(channel)[index];
-//    }
-//  }
+
+  public class StrokeDataPoint implements DataPoint {
+    private final int index;
+
+    StrokeDataPoint(int index) {
+      this.index = index;
+    }
+
+    @Override
+    public double get(DataChannel channel) {
+      return dataBuffers.get(channel) == null
+          ? 0
+          : dataBuffers.get(channel)[index];
+    }
+  }
 }

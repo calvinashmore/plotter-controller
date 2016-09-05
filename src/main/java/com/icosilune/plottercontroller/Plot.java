@@ -6,7 +6,11 @@
 package com.icosilune.plottercontroller;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Functions;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Represents all the curves / strokes representing a single plotter run.
@@ -14,11 +18,16 @@ import java.util.List;
 @AutoValue
 public abstract class Plot {
   public abstract List<Stroke> getStrokes();
-  
-  // *** Also need something for transformation of data points:
-  // public abstract Map<DataChannel, PointXForm> getPointXForms(); ??????
+  // Data transformation of each channel
+  public abstract Map<DataChannel, ChannelTransform> getChannelTransforms();
   
   public static Plot create(List<Stroke> strokes) {
-    return new AutoValue_Plot(strokes);
+    return create(strokes, Arrays.stream(DataChannel.values()).collect(Collectors.toMap(
+        x -> x,
+        (DataChannel x) -> ChannelTransform.identity())));
+  }
+
+  public static Plot create(List<Stroke> strokes, Map<DataChannel, ChannelTransform> channelTransforms) {
+    return new AutoValue_Plot(strokes, channelTransforms);
   }
 }
