@@ -54,7 +54,7 @@ public class PlotReader {
         currentRow = 0;
       }
 
-      for(int i = 0; i< channelOrdering.size(); i++) {
+      for(int i = 0; i<channelOrdering.size(); i++) {
         strokeData.put(currentRow, channelOrdering.get(i), Double.valueOf(record.get(i+1)));
       }
     }

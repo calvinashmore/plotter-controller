@@ -5,9 +5,8 @@
  */
 package com.icosilune.plottercontroller;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import java.util.List;
+import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -26,21 +25,21 @@ class SerialController {
   private final SerialPort serialPort;
   private final ExecutorService executor =
       Executors.newSingleThreadExecutor(new ThreadFactoryBuilder()
-          .setDaemon(true)
+          .setDaemon(false)
           .setNameFormat("controller-%d")
           .build());
   // consider making a constant or something else
   private final int itemsToWrite = 5;
-  private final List<String> totalItems;
+  private final Iterator<String> items;
   // The total number of lines successfully handled by the SerialPort
   private int currentProgress = 0;
   // The total number of lines written to the SerialPort
   private int currentWritten = 0;
   private boolean paused = false;
 
-  SerialController(SerialPort serialPort, Iterable<String> totalItems) {
+  SerialController(SerialPort serialPort, Iterator<String> items) {
     this.serialPort = serialPort;
-    this.totalItems = ImmutableList.copyOf(totalItems);
+    this.items = items;
   }
 
   public Future<?> start() {
@@ -79,10 +78,10 @@ class SerialController {
         Thread.sleep(100);
         if (!paused && currentWritten - currentProgress < itemsToWrite) {
           try {
-            if (currentWritten == totalItems.size()) {
+            if (!items.hasNext()) {
               return;
             }
-            serialPort.writeString(totalItems.get(currentWritten));
+            serialPort.writeString(items.next());
             currentWritten++;
           } catch (SerialPortException ex) {
             // now what?

@@ -6,12 +6,13 @@
 package com.icosilune.plottercontroller;
 
 import com.google.common.base.Strings;
+import java.util.Iterator;
 
 /**
  * Writes plot data to serial output.
  * Has mutable state that advances as we move through the points.
  */
-public class PlotWriter {
+public class PlotWriter implements Iterator<String> {
   
   // 1st index is the data index, remainder are values according to DataChannel
   private static final String FORMAT =
@@ -40,10 +41,12 @@ public class PlotWriter {
     this.plot = plot;
   }
   
-  boolean hasNext() {
+  @Override
+  public boolean hasNext() {
     return currentState != State.DONE;
   }
   
+  @Override
   public String next() {
     // how to handle space in between strokes??
     DataPoint point;
