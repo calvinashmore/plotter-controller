@@ -15,12 +15,13 @@ import java.util.logging.Logger;
  * @author ashmore
  */
 public class PlotWriter implements SerialController.DataListener {
-  private static final Logger LOG = Logger.getLogger( SerialController.class.getName() );
+  private static final Logger LOG = Logger.getLogger( PlotWriter.class.getName() );
   
   private static final int START_BLOCK = 0xDEADBEEF;
   private static final int VERIFIER = 0x777777A7;
   private static final long HANDSHAKE_CONFIRM = 0x7887655653351FF1L;
   private static final long SLEEP_TIME = 10;
+  private static final long HANDSHAKE_SLEEP_TIME = 100;
   
   private final SerialController serialController;
   private final PlotDataIterator dataIterator;
@@ -56,16 +57,16 @@ public class PlotWriter implements SerialController.DataListener {
       while (dataIterator.hasNext()) {
         DataPoint next = dataIterator.next();
         long dataIndex = dataIterator.getDataIndex();
-        if (!isPaused && currentProgress < dataIndex) {
-          serialController.writeData(formatPoint(dataIndex, next));
+        serialController.writeData(formatPoint(dataIndex, next));
+        while(isPaused || currentProgress < dataIndex) {
+          Thread.sleep(SLEEP_TIME);
         }
-
-        Thread.sleep(SLEEP_TIME);
       }
     } catch (InterruptedException ex) {
       LOG.warning("Interrupted while streaming data!");
     }
     LOG.info("Finished!!!");
+    serialController.disconnect();
   }
 
   private byte[] formatPoint(long dataIndex, DataPoint point) {
@@ -102,7 +103,7 @@ public class PlotWriter implements SerialController.DataListener {
         ByteBuffer bytes = ByteBuffer.allocate(Long.BYTES).order(ByteOrder.LITTLE_ENDIAN);
         bytes.putLong(HANDSHAKE_CONFIRM);
         serialController.writeData(bytes.array());
-        Thread.sleep(SLEEP_TIME);
+        Thread.sleep(HANDSHAKE_SLEEP_TIME);
       }
     } catch (InterruptedException ex) {
       LOG.warning("Interrupted while executing handshake!");
@@ -113,6 +114,7 @@ public class PlotWriter implements SerialController.DataListener {
   @Override
   public void handleData(long data) {
     if(data == HANDSHAKE_CONFIRM) {
+      LOG.info("Got handshake!");
       hasHandshake = true;
       return;
     }

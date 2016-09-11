@@ -25,8 +25,16 @@ public class Main {
   public static void main(String args[]) throws FileNotFoundException, IOException, SerialPortException {
     // NOTE: We don't want to treat this as a thing that we can just write all at once
     // It needs to be possible to pause and resume mid plot- so a UI may be necessary.
-    FileReader fileReader = new FileReader("data.csv");
-    Plot plot = new PlotReader(ImmutableList.of(DataChannel.POSITION_X, DataChannel.POSITION_Y))
+    FileReader fileReader = new FileReader("export1.csv");
+    Plot plot =
+        new PlotReader(
+          ImmutableList.of(
+              DataChannel.POSITION_X,
+              DataChannel.POSITION_Y,
+              DataChannel.SPEED,
+              DataChannel.PRESSURE_Z,
+              DataChannel.YAW,
+              DataChannel.PITCH))
         .read(fileReader);
     PlotDataIterator plotData = new PlotDataIterator(plot);
 

@@ -5,9 +5,6 @@
  */
 package com.icosilune.plottercontroller;
 
-import com.google.common.base.Strings;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.Iterator;
 
 /**
@@ -88,24 +85,6 @@ public class PlotDataIterator implements Iterator<DataPoint> {
   private DataPoint applyTransforms(DataPoint point) {
     return channel -> plot.getChannelTransforms().get(channel).apply(point.get(channel));
   }
-  
-//  public static final int PACKET_SIZE = 64;
-//  private static final int VERIFIER = 0xDEADBEEF;
-  
-  // Formats the data point to a string used for output.
-  // We expect the point to already be transformed if it needs to be.
-//  private byte[] formatPoint(DataPoint point) {
-//    ByteBuffer buffer = ByteBuffer.allocate(PACKET_SIZE).order(ByteOrder.LITTLE_ENDIAN);
-//    
-//    buffer.putLong(dataIndex);
-//    
-//    for(DataChannel channel : DataChannel.values()) {
-//      buffer.putFloat((float) point.get(channel));
-//    }
-//    buffer.putInt(VERIFIER);
-//
-//    return buffer.array();
-//  }
   
   private void startPositioning() {
     currentState = State.POSITIONING;

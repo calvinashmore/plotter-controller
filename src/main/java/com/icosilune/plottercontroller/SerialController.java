@@ -38,9 +38,9 @@ class SerialController {
   }
 
   SerialController(){
-    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-      disconnect();
-    }));
+//    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+//      disconnect();
+//    }));
   }
   
   public void disconnect() {
@@ -89,9 +89,9 @@ class SerialController {
         if (event.isRXCHAR() && event.getEventValue() > 0) {
           try {
             byte[] read = serialPort.readBytes(Long.BYTES);
-            long response = ByteBuffer.wrap(read).order(ByteOrder.LITTLE_ENDIAN).asLongBuffer().
-                get();
-            LOG.log(Level.INFO, "Serial read: {0}", response);
+            long response = 
+                ByteBuffer.wrap(read).order(ByteOrder.LITTLE_ENDIAN).asLongBuffer().get();
+            LOG.log(Level.INFO, "Serial read: {0} ({1})", new Object[] {response, bytesToHex(read)});
             dataListener.handleData(response);
           } catch (SerialPortException ex) {
             LOG.log(Level.WARNING, "Caught serial exception", ex);
@@ -111,7 +111,7 @@ class SerialController {
       throw new IllegalStateException("port not open");
     }
     try {
-      LOG.log(Level.FINE, "Writing {0}", bytesToHex(data));
+      LOG.log(Level.INFO, "Writing {0}", bytesToHex(data));
       serialPort.writeBytes(data);
     } catch (SerialPortException ex) {
       LOG.log(Level.WARNING, "Caught serial exception", ex);
