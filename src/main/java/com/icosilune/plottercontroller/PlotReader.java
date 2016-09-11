@@ -13,7 +13,6 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedMap;
 import java.util.stream.Collectors;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -58,15 +57,16 @@ public class PlotReader {
         strokeData.put(currentRow, channelOrdering.get(i), Double.valueOf(record.get(i+1)));
       }
     }
+    strokes.add(createStroke(strokeData));
     return Plot.create(strokes);
   }
 
   private static Stroke createStroke(RowSortedTable<Integer, DataChannel, Double> strokeData) {
     return new Stroke(strokeData.columnMap().entrySet().stream().collect(Collectors.toMap(
-            Map.Entry::getKey, x -> convertData((SortedMap<Integer, Double>) x.getValue()))));
+            Map.Entry::getKey, x -> convertData(x.getValue()))));
   }
 
-  private static double[] convertData(SortedMap<Integer, Double> data) {
+  private static double[] convertData(Map<Integer, Double> data) {
     return Doubles.toArray(data.values());
   }
 }

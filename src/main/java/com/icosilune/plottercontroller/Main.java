@@ -12,6 +12,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.concurrent.Executors;
 import jssc.SerialPort;
 import jssc.SerialPortException;
 import jssc.SerialPortList;
@@ -27,28 +28,14 @@ public class Main {
     FileReader fileReader = new FileReader("data.csv");
     Plot plot = new PlotReader(ImmutableList.of(DataChannel.POSITION_X, DataChannel.POSITION_Y))
         .read(fileReader);
-    PlotWriter plotWriter = new PlotWriter(plot);
-    
-    System.out.println("Available serial ports: " + Arrays.asList(SerialPortList.getPortNames()));
-    String portName = Iterables.getOnlyElement(
-        Arrays.asList(SerialPortList.getPortNames()),
-        "/dev/tty.usbmodem1411");
-    final SerialPort serialPort = new SerialPort(portName);
-    
-    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-      try {
-        if(serialPort.isOpened()){
-          serialPort.closePort();
-        }
-      } catch (SerialPortException ex) {
-        ex.printStackTrace();
-      }
-    }));
-    
-    Preconditions.checkState(serialPort.openPort(), "could not open port");
-    Preconditions.checkState(serialPort.setParams(9600, 8, 1, 0), "could not set params");
+    PlotDataIterator plotData = new PlotDataIterator(plot);
 
-    SerialController serialController = new SerialController(serialPort, plotWriter);
-    serialController.start();
+    SerialController serialController = new SerialController();
+    PlotWriter plotWriter = new PlotWriter(serialController, plotData, 
+        Executors.newSingleThreadExecutor());
+    
+    Preconditions.checkState(serialController.connect(), "Could not connect!");
+    
+    plotWriter.start();
   }
 }

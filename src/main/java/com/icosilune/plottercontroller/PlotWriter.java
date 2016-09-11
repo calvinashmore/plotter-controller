@@ -5,103 +5,120 @@
  */
 package com.icosilune.plottercontroller;
 
-import com.google.common.base.Strings;
-import java.util.Iterator;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.concurrent.Executor;
+import java.util.logging.Logger;
 
 /**
- * Writes plot data to serial output.
- * Has mutable state that advances as we move through the points.
+ *
+ * @author ashmore
  */
-public class PlotWriter implements Iterator<String> {
+public class PlotWriter implements SerialController.DataListener {
+  private static final Logger LOG = Logger.getLogger( SerialController.class.getName() );
   
-  // 1st index is the data index, remainder are values according to DataChannel
-  private static final String FORMAT =
-      "%d"+ Strings.repeat(" %f", DataChannel.values().length);
-
-  // Output format is formatted string.
-  private final Plot plot;
+  private static final int START_BLOCK = 0xDEADBEEF;
+  private static final int VERIFIER = 0x777777A7;
+  private static final long HANDSHAKE_CONFIRM = 0x7887655653351FF1L;
+  private static final long SLEEP_TIME = 10;
   
-  // May want to have a specific class to represent this???
-  private int strokeIndex = 0;
-  private int pointIndex = 0; // index of point inside the stroke
-  private long dataIndex = 0; // index of all data
-  private State currentState = State.PRE_START;
-  private Stroke currentStroke;
-
-  // Might be nice to have accessors to power a UI or something.
+  private final SerialController serialController;
+  private final PlotDataIterator dataIterator;
+  private final Executor executor;
   
-  private enum State {
-    PRE_START,
-    POSITIONING,
-    STROKE,
-    DONE,
-  }
+  long currentProgress = -1;
+  boolean isStarted;
+  boolean isPaused;
+  boolean hasHandshake;
 
-  public PlotWriter(Plot plot) {
-    this.plot = plot;
+  PlotWriter(SerialController serialController, PlotDataIterator dataIterator, Executor executor) {
+    this.serialController = serialController;
+    this.dataIterator = dataIterator;
+    this.executor = executor;
+    
+    serialController.setDataListener(this);
   }
   
-  @Override
-  public boolean hasNext() {
-    return currentState != State.DONE;
+  public void start() {
+    if (isStarted) {
+      throw new IllegalStateException("Writer is already started");
+    }
+    LOG.info("Starting");
+    isStarted = true;
+    executor.execute(this::run);
   }
   
-  @Override
-  public String next() {
-    // how to handle space in between strokes??
-    DataPoint point;
-    switch(currentState) {
-      case PRE_START:
-        startPositioning();
-        point = DataPoint.ORIGIN;
-      case POSITIONING:
-        // Not quite sure what we want to do here.
-        // As written, we'll get the 0 point twice. Maybe that's okay.
-        point = applyTransforms(currentStroke.getPoint(0));
-        break;
-      case STROKE:
-        point = applyTransforms(currentStroke.getPoint(pointIndex));
-        
-        pointIndex++;
-        if(pointIndex >= currentStroke.getNumberDataPoints()) {
-          strokeIndex++;
-          if(strokeIndex >= plot.getStrokes().size()) {
-            currentState = State.DONE;
-          } else {
-            startPositioning();
-          }
+  private void run() {
+    // Request the handshake to start
+    handshake();
+
+    try {
+      while (dataIterator.hasNext()) {
+        DataPoint next = dataIterator.next();
+        long dataIndex = dataIterator.getDataIndex();
+        if (!isPaused && currentProgress < dataIndex) {
+          serialController.writeData(formatPoint(dataIndex, next));
         }
-        break;
-      case DONE:
-        throw new IllegalStateException("no more");
-      default:
-        throw new IllegalArgumentException("unrecognized state "+currentState);
-    }
-    dataIndex++;
-    return formatPoint(point);
-  }
-  
-  private DataPoint applyTransforms(DataPoint point) {
-    return channel -> plot.getChannelTransforms().get(channel).apply(point.get(channel));
-  }
-  
-  // Formats the data point to a string used for output.
-  // We expect the point to already be transformed if it needs to be.
-  private String formatPoint(DataPoint point) {
-    Object[] values = new Object[1 + DataChannel.values().length];
-    values[0] = dataIndex;
-    for(DataChannel channel : DataChannel.values()) {
-      values[channel.ordinal() + 1] = point.get(channel);
-    }
 
-    return String.format(FORMAT, values);
+        Thread.sleep(SLEEP_TIME);
+      }
+    } catch (InterruptedException ex) {
+      LOG.warning("Interrupted while streaming data!");
+    }
+    LOG.info("Finished!!!");
+  }
+
+  private byte[] formatPoint(long dataIndex, DataPoint point) {
+
+    int baseSize = 2 * Integer.BYTES + Long.BYTES + DataChannel.values().length * Float.BYTES;
+    ByteBuffer byteBuffer = ByteBuffer.allocate(baseSize).order(ByteOrder.LITTLE_ENDIAN);
+
+    byteBuffer.putInt(START_BLOCK);
+    byteBuffer.putLong(dataIndex);
+    for (DataChannel channel : DataChannel.values()) {
+      byteBuffer.putFloat((float) point.get(channel));
+    }
+    byteBuffer.putInt(VERIFIER);
+
+    return byteBuffer.array();
   }
   
-  private void startPositioning() {
-    currentState = State.POSITIONING;
-    currentStroke = plot.getStrokes().get(strokeIndex);
-    pointIndex = 0;
-//    currentStroke.getPoint(0);
+  public void pause() {
+    isPaused = true;
   }
   
+  public void unpause() {
+    isPaused = false;
+  }
+  
+  /**
+   * Executes handshake, and blocks until it occurs. This may need to get called more than once if the microcontroller is reset.
+   */
+  public void handshake() {
+    hasHandshake = false;
+    LOG.info("Initiating handshake");
+    try {
+      while (!hasHandshake) {
+        ByteBuffer bytes = ByteBuffer.allocate(Long.BYTES).order(ByteOrder.LITTLE_ENDIAN);
+        bytes.putLong(HANDSHAKE_CONFIRM);
+        serialController.writeData(bytes.array());
+        Thread.sleep(SLEEP_TIME);
+      }
+    } catch (InterruptedException ex) {
+      LOG.warning("Interrupted while executing handshake!");
+    }
+    LOG.info("Handshake completed!");
+  }
+
+  @Override
+  public void handleData(long data) {
+    if(data == HANDSHAKE_CONFIRM) {
+      hasHandshake = true;
+      return;
+    }
+    
+    if(hasHandshake) {
+      currentProgress = data;
+    }
+  }
 }
