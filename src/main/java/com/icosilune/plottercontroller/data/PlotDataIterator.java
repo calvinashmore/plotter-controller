@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.icosilune.plottercontroller;
+package com.icosilune.plottercontroller.data;
 
 import java.util.Iterator;
 
@@ -76,6 +76,14 @@ public class PlotDataIterator implements Iterator<DataPoint> {
     }
     dataIndex++;
     return point;
+  }
+
+  public double getStrokeProgress() {
+    return pointIndex / (double) currentStroke.getNumberDataPoints();
+  }
+
+  public double getTotalProgress() {
+    return strokeIndex / (double) plot.getStrokes().size();
   }
 
   public long getDataIndex() {

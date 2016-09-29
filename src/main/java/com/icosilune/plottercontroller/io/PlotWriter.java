@@ -3,11 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.icosilune.plottercontroller;
+package com.icosilune.plottercontroller.io;
 
+import com.icosilune.plottercontroller.data.DataChannel;
+import com.icosilune.plottercontroller.data.DataPoint;
+import com.icosilune.plottercontroller.data.PlotDataIterator;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 /**
@@ -25,18 +29,20 @@ public class PlotWriter implements SerialController.DataListener {
   
   private final SerialController serialController;
   private final PlotDataIterator dataIterator;
-  private final Executor executor;
+  private final ExecutorService executor;
+  private final ProgressListener progressListener;
   
   long currentProgress = -1;
   boolean isStarted;
   boolean isPaused;
   boolean hasHandshake;
 
-  PlotWriter(SerialController serialController, PlotDataIterator dataIterator, Executor executor) {
+  public PlotWriter(SerialController serialController, PlotDataIterator dataIterator, ProgressListener progressListener) {
     this.serialController = serialController;
     this.dataIterator = dataIterator;
-    this.executor = executor;
-    
+    this.executor = Executors.newSingleThreadExecutor();
+    this.progressListener = progressListener;
+
     serialController.setDataListener(this);
   }
   
@@ -46,18 +52,29 @@ public class PlotWriter implements SerialController.DataListener {
     }
     LOG.info("Starting");
     isStarted = true;
-    executor.execute(this::run);
+    
+    executor.submit(this::run);
+  }
+  
+  public void stop() {
+    if(!isStarted) {
+      throw new IllegalStateException("Writer has not been started");
+    }
+    LOG.info("Stopping...");
+    executor.shutdownNow();
   }
   
   private void run() {
     // Request the handshake to start
     handshake();
+    progressListener.update(0, 0);
 
     try {
       while (dataIterator.hasNext()) {
         DataPoint next = dataIterator.next();
         long dataIndex = dataIterator.getDataIndex();
         serialController.writeData(formatPoint(dataIndex, next));
+        progressListener.update(dataIterator.getStrokeProgress(), dataIterator.getTotalProgress());
         while(isPaused || currentProgress < dataIndex) {
           Thread.sleep(SLEEP_TIME);
         }
@@ -122,5 +139,14 @@ public class PlotWriter implements SerialController.DataListener {
     if(hasHandshake) {
       currentProgress = data;
     }
+  }
+
+  public boolean isPaused() {
+    return isPaused;
+  }
+  
+  @FunctionalInterface
+  public interface ProgressListener {
+    public void update(double strokeProgress, double totalProgress);
   }
 }

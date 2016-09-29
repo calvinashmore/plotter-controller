@@ -13,12 +13,6 @@ LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
 
 #define ENABLE_PIN 12
 
-// speed in steps/second
-// > 1000 are unreliable.
-float stepperSpeed = 100;
-long stepperCoodinates[2];
-
-
 void setup() {
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
@@ -56,10 +50,14 @@ void loop() {
       lcd.print((unsigned long) currentData.index);
       lcd.print("        ");
       lcd.setCursor(0, 1);
-  
-      stepperCoodinates[0] = (long)(10*currentData.values[0]);
-      stepperCoodinates[1] = (long)(10*currentData.values[1]);
-      stepperSpeed = max(100*currentData.values[2],10);
+
+      long stepperCoodinates[2];
+      stepperCoodinates[0] = (long)(100*currentData.values[0]);
+      stepperCoodinates[1] = (long)(100*currentData.values[1]);
+      
+      // speed in steps/second
+      // > 1000 are unreliable.
+      float stepperSpeed = max(100*currentData.values[2],10);
       int servoCoordinates = (int)(currentData.values[3]);
 
       int totalToGo = abs(stepper1.distanceToGo()) + abs(stepper2.distanceToGo());
@@ -133,9 +131,6 @@ void enableSteppers(boolean enabled) {
 
 void readUntilHandshake() {
   while(true) {
-
-//    writeLong(-1);
-    
     int b;
     b = blockingReadByte();
     if (b != longByte(HANDSHAKE_CONFIRM, 0)) continue;

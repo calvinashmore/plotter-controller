@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.icosilune.plottercontroller;
+package com.icosilune.plottercontroller.data;
 
 /**
  * Channel of a data point used in a Stroke

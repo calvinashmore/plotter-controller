@@ -3,8 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.icosilune.plottercontroller;
+package com.icosilune.plottercontroller.data;
 
+import com.google.common.collect.Range;
+import com.sun.istack.internal.Nullable;
+import java.util.Arrays;
+import java.util.DoubleSummaryStatistics;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -30,6 +35,15 @@ public class Stroke {
   
   public DataPoint getPoint(int index) {
     return new StrokeDataPoint(index);
+  }
+  
+  @Nullable
+  public Range<Double> getExtents(DataChannel channel) {
+    if(dataBuffers.get(channel) == null) {
+      return null;
+    }
+    DoubleSummaryStatistics stats = Arrays.stream(dataBuffers.get(channel)).summaryStatistics();
+    return Range.closed(stats.getMin(), stats.getMax());
   }
 
   public class StrokeDataPoint implements DataPoint {

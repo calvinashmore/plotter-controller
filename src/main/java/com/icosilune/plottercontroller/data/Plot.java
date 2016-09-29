@@ -3,13 +3,19 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.icosilune.plottercontroller;
+package com.icosilune.plottercontroller.data;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Functions;
+import com.google.common.base.Predicates;
+import com.google.common.collect.Range;
+import com.sun.istack.internal.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -29,5 +35,15 @@ public abstract class Plot {
 
   public static Plot create(List<Stroke> strokes, Map<DataChannel, ChannelTransform> channelTransforms) {
     return new AutoValue_Plot(strokes, channelTransforms);
+  }
+  
+  @Nullable
+  public Range<Double> getExtents(DataChannel channel) {
+    return getStrokes()
+        .stream()
+        .map(s -> s.getExtents(channel))
+        .filter(Objects::nonNull)
+        .reduce((a,b) -> a.span(b) )
+        .orElse(null);
   }
 }

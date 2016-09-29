@@ -8,11 +8,15 @@ package com.icosilune.plottercontroller;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.icosilune.plottercontroller.ui.MainPanel;
+import com.icosilune.plottercontroller.ui.PlotView;
+import java.awt.Dimension;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
+import javax.swing.JFrame;
 import jssc.SerialPort;
 import jssc.SerialPortException;
 import jssc.SerialPortList;
@@ -23,27 +27,10 @@ import jssc.SerialPortList;
  */
 public class Main {
   public static void main(String args[]) throws FileNotFoundException, IOException, SerialPortException {
-    // NOTE: We don't want to treat this as a thing that we can just write all at once
-    // It needs to be possible to pause and resume mid plot- so a UI may be necessary.
-    FileReader fileReader = new FileReader("export1.csv");
-    Plot plot =
-        new PlotReader(
-          ImmutableList.of(
-              DataChannel.POSITION_X,
-              DataChannel.POSITION_Y,
-              DataChannel.SPEED,
-              DataChannel.PRESSURE_Z,
-              DataChannel.YAW,
-              DataChannel.PITCH))
-        .read(fileReader);
-    PlotDataIterator plotData = new PlotDataIterator(plot);
-
-    SerialController serialController = new SerialController();
-    PlotWriter plotWriter = new PlotWriter(serialController, plotData, 
-        Executors.newSingleThreadExecutor());
-    
-    Preconditions.checkState(serialController.connect(), "Could not connect!");
-    
-    plotWriter.start();
+    JFrame main = new JFrame("omfg");
+    main.add(new MainPanel());
+    main.pack();
+    main.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    main.setVisible(true);
   }
 }

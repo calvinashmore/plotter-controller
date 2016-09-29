@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.icosilune.plottercontroller;
+package com.icosilune.plottercontroller.io;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -20,7 +20,7 @@ import jssc.SerialPortList;
  *
  * @author ashmore
  */
-class SerialController {
+public class SerialController {
   private static final Logger LOG = Logger.getLogger( SerialController.class.getName() );
 
   // Another condition to keep track of: what if the serial port is closed?
@@ -33,11 +33,11 @@ class SerialController {
     void handleData(long data);
   }
   
-  void setDataListener(DataListener dataListener) {
+  public void setDataListener(DataListener dataListener) {
     this.dataListener = dataListener;
   }
 
-  SerialController(){
+  public SerialController() {
 //    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 //      disconnect();
 //    }));
@@ -47,7 +47,11 @@ class SerialController {
     try {
       if (isConnected()) {
         LOG.info("Closing serial");
-        serialPort.closePort();
+        if(!serialPort.closePort()) {
+          LOG.warning("Could not close port");
+        } else {
+          serialPort = null;
+        }
       } else {
         LOG.info("Already disconnected");
       }
