@@ -9,6 +9,7 @@ import com.google.common.collect.Range;
 import com.icosilune.plottercontroller.data.DataChannel;
 import com.icosilune.plottercontroller.data.DataPoint;
 import com.icosilune.plottercontroller.data.Plot;
+import com.icosilune.plottercontroller.data.PlotDataIterator;
 import com.icosilune.plottercontroller.data.Stroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -24,6 +25,8 @@ import javax.swing.JPanel;
 public class PlotView extends JPanel {
   private Plot plot;
   private DataPoint currentProgress;
+  
+  private int currentStrokeIndex = -1;
 
   public PlotView() {
     setPreferredSize(new Dimension(500, 500));
@@ -31,11 +34,7 @@ public class PlotView extends JPanel {
 
   public void setPlot(Plot plot) {
     this.plot = plot;
-    repaint();
-  }
-
-  public void setCurrentProgress(DataPoint currentProgress) {
-    this.currentProgress = currentProgress;
+    currentStrokeIndex = -1;
     repaint();
   }
 
@@ -50,10 +49,12 @@ public class PlotView extends JPanel {
     g.setColor(Color.BLACK);
     if (plot != null) {
       
-      Range<Double> xExtents = plot.getExtents(DataChannel.POSITION_X);
-      Range<Double> yExtents = plot.getExtents(DataChannel.POSITION_Y);
+      Range<Double> xExtents = plot.getExtents().get(DataChannel.POSITION_X);
+      Range<Double> yExtents = plot.getExtents().get(DataChannel.POSITION_Y);
       
-      plot.getStrokes().forEach(s -> paintStroke(s,g2, xExtents, yExtents));
+      for(int i=0;i<plot.getStrokes().size();i++) {
+        paintStroke(plot.getStrokes().get(i), g2, xExtents, yExtents, i==currentStrokeIndex);
+      }
       
       if (currentProgress != null) {
         Point ip = getPosition(currentProgress, xExtents, yExtents);
@@ -71,7 +72,13 @@ public class PlotView extends JPanel {
     return new Point(ix, iy);
   }
   
-  private void paintStroke(Stroke s, Graphics2D g, Range<Double> xExtents, Range<Double> yExtents) {
+  private void paintStroke(Stroke s, Graphics2D g, Range<Double> xExtents, Range<Double> yExtents, boolean isCurrent) {
+    
+    if(isCurrent) {
+      g.setColor(Color.BLUE);
+    } else {
+      g.setColor(Color.BLACK);
+    }
     
     int lastIx = 0;
     int lastIy = 0;
@@ -90,5 +97,11 @@ public class PlotView extends JPanel {
       lastIx = ix;
       lastIy = iy;
     }
+  }
+
+  void updateProgress(PlotDataIterator.PlotProgress progress) {
+    currentStrokeIndex = progress.getStrokeIndex();
+    currentProgress = progress.getPoint();
+    repaint();
   }
 }

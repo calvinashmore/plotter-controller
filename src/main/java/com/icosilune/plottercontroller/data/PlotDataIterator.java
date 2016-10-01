@@ -5,6 +5,7 @@
  */
 package com.icosilune.plottercontroller.data;
 
+import com.google.auto.value.AutoValue;
 import java.util.Iterator;
 
 /**
@@ -22,6 +23,7 @@ public class PlotDataIterator implements Iterator<DataPoint> {
   private long dataIndex = 0; // index of all data
   private State currentState = State.PRE_START;
   private Stroke currentStroke;
+  private DataPoint currentPoint = DataPoint.ORIGIN;
 
   // Might be nice to have accessors to power a UI or something.
   
@@ -44,20 +46,19 @@ public class PlotDataIterator implements Iterator<DataPoint> {
   @Override
   public DataPoint next() {
     // how to handle space in between strokes??
-    DataPoint point;
     switch(currentState) {
       case PRE_START:
         startPositioning();
-        point = DataPoint.ORIGIN;
+        currentPoint = DataPoint.ORIGIN;
         break;
       case POSITIONING:
         // Not quite sure what we want to do here.
         // As written, we'll get the 0 point twice. Maybe that's okay.
-        point = applyTransforms(currentStroke.getPoint(0));
+        currentPoint = applyTransforms(currentStroke.getPoint(0));
         currentState = State.STROKE;
         break;
       case STROKE:
-        point = applyTransforms(currentStroke.getPoint(pointIndex));
+        currentPoint = applyTransforms(currentStroke.getPoint(pointIndex));
         
         pointIndex++;
         if(pointIndex >= currentStroke.getNumberDataPoints()) {
@@ -75,23 +76,53 @@ public class PlotDataIterator implements Iterator<DataPoint> {
         throw new IllegalArgumentException("unrecognized state "+currentState);
     }
     dataIndex++;
-    return point;
+    return currentPoint;
+  }
+  
+  @AutoValue
+  public static abstract class PlotProgress {
+    public abstract int getPointIndex();
+    public abstract int getTotalPoints();
+    public abstract int getStrokeIndex();
+    public abstract int getTotalStrokes();
+    public abstract DataPoint getPoint();
+    
+    public double getStrokeProgress() {
+      return getPointIndex() / (double) getTotalPoints();
+    }
+    
+    public double getTotalProgress() {
+      return getStrokeIndex() / (double) getTotalStrokes();
+    }
+
+    static PlotProgress create(int pointIndex, int totalPoints, int strokeIndex, int totalStrokes, DataPoint point) {
+      return new AutoValue_PlotDataIterator_PlotProgress(pointIndex, totalPoints, strokeIndex, totalStrokes, point);
+    }
+  }
+  
+  public PlotProgress getProgress() {
+    return PlotProgress.create(
+        pointIndex, 
+        currentStroke == null ? 1 : currentStroke.getNumberDataPoints(),
+        strokeIndex,
+        plot.getStrokes().size(),
+        currentPoint);
   }
 
-  public double getStrokeProgress() {
-    return pointIndex / (double) currentStroke.getNumberDataPoints();
-  }
-
-  public double getTotalProgress() {
-    return strokeIndex / (double) plot.getStrokes().size();
-  }
+//  public double getStrokeProgress() {
+//    return pointIndex / (double) currentStroke.getNumberDataPoints();
+//  }
+//
+//  public double getTotalProgress() {
+//    return strokeIndex / (double) plot.getStrokes().size();
+//  }
 
   public long getDataIndex() {
     return dataIndex;
   }
   
   private DataPoint applyTransforms(DataPoint point) {
-    return channel -> plot.getChannelTransforms().get(channel).apply(point.get(channel));
+    return channel -> plot.getChannelTransform(channel).apply(point.get(channel));
   }
   
   private void startPositioning() {

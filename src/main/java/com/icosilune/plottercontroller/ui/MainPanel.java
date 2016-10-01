@@ -43,6 +43,7 @@ public class MainPanel extends JPanel {
   private final AbstractAction stop = new StopAction();
   private final AbstractAction pause = new PauseAction();
   private final AbstractAction unpause = new UnpauseAction();
+  private final ChannelEditors channelEditors;
 
   private Plot currentPlot = null;
   private PlotWriter plotWriter = null;
@@ -59,6 +60,12 @@ public class MainPanel extends JPanel {
     buttonPanel.add(new JButton(pause));
     buttonPanel.add(new JButton(unpause));
     add(buttonPanel,BorderLayout.NORTH);
+    
+//    JPanel channelEditorPanel = new JPanel();
+//    channelEditorPanel.add(new ChannelEditor(DataChannel.POSITION_X));
+//    add(channelEditorPanel, BorderLayout.EAST);
+    add(channelEditors = new ChannelEditors(), BorderLayout.EAST);
+    
     
     plotView = new PlotView();
     add(plotView, BorderLayout.CENTER);
@@ -89,8 +96,9 @@ public class MainPanel extends JPanel {
     plotView.setPlot(plot);
   }
   
-  void updateProgress(double strokeProgress, double totalProgress) {
-    
+  void updateProgress(PlotDataIterator.PlotProgress progress) {
+    plotView.updateProgress(progress);
+    channelEditors.updateProgress(progress);
   }
   
   class PauseAction extends AbstractAction {
@@ -124,8 +132,7 @@ public class MainPanel extends JPanel {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      PlotDataIterator plotData = new PlotDataIterator(currentPlot);
-      plotWriter = new PlotWriter(serialController, plotData, MainPanel.this::updateProgress);
+      plotWriter = new PlotWriter(serialController, currentPlot, MainPanel.this::updateProgress);
 
       plotWriter.start();
       configureButtons();

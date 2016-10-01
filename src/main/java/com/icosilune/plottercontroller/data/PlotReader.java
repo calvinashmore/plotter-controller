@@ -11,7 +11,6 @@ import com.google.common.primitives.Doubles;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -80,7 +79,7 @@ public class PlotReader {
       LOG.log(Level.INFO, "Stroke {0} has {1} data points", new Object[]{i, strokes.get(i).getNumberDataPoints()});
     }
     
-    return Plot.create(strokes);
+    return new Plot(strokes);
   }
   
   public class ParseException extends Exception {

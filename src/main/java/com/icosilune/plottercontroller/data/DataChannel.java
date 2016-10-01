@@ -15,19 +15,30 @@ public enum DataChannel {
   // X & Y positions regard 0,0 as the origin of the plot. Negative values should be invalid.
   // Not sure what the x&y limits should be. Might be nice to have this actually measure out mm or
   // something.
-  POSITION_X,
-  POSITION_Y,
+  POSITION_X("Position X"),
+  POSITION_Y("Position Y"),
   
   // Values should be >= 0. Zero speed might be used to create a spot or pause. But may be unlikely
-  SPEED,
+  SPEED("Speed"),
   
   // Not sure what we want this to be. 0 for fully up. 100? for fully down?
-  PRESSURE_Z,
+  PRESSURE_Z("Pressure"),
   
   // Angle (degrees). 0 for vertical. Otherwise should be angle in degrees.
   // all the way on pitch will eject the pen.
-  PITCH,
+  PITCH("Pitch"),
   
   // Angle (degrees). Full 360 freedom is possible. Including negative values and wrapping.
-  YAW,
+  YAW("Yaw"),
+  ;
+  
+  private final String niceName;
+
+  private DataChannel(String niceName) {
+    this.niceName = niceName;
+  }
+  
+  public String getNiceName() {
+    return niceName;
+  }
 }

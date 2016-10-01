@@ -5,6 +5,7 @@
  */
 package com.icosilune.plottercontroller.data;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 import com.sun.istack.internal.Nullable;
 import java.util.Arrays;
@@ -37,13 +38,11 @@ public class Stroke {
     return new StrokeDataPoint(index);
   }
   
-  @Nullable
-  public Range<Double> getExtents(DataChannel channel) {
-    if(dataBuffers.get(channel) == null) {
-      return null;
-    }
-    DoubleSummaryStatistics stats = Arrays.stream(dataBuffers.get(channel)).summaryStatistics();
-    return Range.closed(stats.getMin(), stats.getMax());
+  public Extents getExtents() {
+    return new Extents(Maps.transformValues(dataBuffers, values -> {
+      DoubleSummaryStatistics stats = Arrays.stream(values).summaryStatistics();
+      return Range.closed(stats.getMin(), stats.getMax());
+    }));
   }
 
   public class StrokeDataPoint implements DataPoint {

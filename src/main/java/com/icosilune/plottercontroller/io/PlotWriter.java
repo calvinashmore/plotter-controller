@@ -7,6 +7,7 @@ package com.icosilune.plottercontroller.io;
 
 import com.icosilune.plottercontroller.data.DataChannel;
 import com.icosilune.plottercontroller.data.DataPoint;
+import com.icosilune.plottercontroller.data.Plot;
 import com.icosilune.plottercontroller.data.PlotDataIterator;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -31,17 +32,19 @@ public class PlotWriter implements SerialController.DataListener {
   private final PlotDataIterator dataIterator;
   private final ExecutorService executor;
   private final ProgressListener progressListener;
+  private final Plot plot;
   
   long currentProgress = -1;
   boolean isStarted;
   boolean isPaused;
   boolean hasHandshake;
 
-  public PlotWriter(SerialController serialController, PlotDataIterator dataIterator, ProgressListener progressListener) {
+  public PlotWriter(SerialController serialController, Plot plot, ProgressListener progressListener) {
     this.serialController = serialController;
-    this.dataIterator = dataIterator;
+    this.dataIterator = new PlotDataIterator(plot);
     this.executor = Executors.newSingleThreadExecutor();
     this.progressListener = progressListener;
+    this.plot = plot;
 
     serialController.setDataListener(this);
   }
@@ -67,14 +70,14 @@ public class PlotWriter implements SerialController.DataListener {
   private void run() {
     // Request the handshake to start
     handshake();
-    progressListener.update(0, 0);
+    progressListener.update(dataIterator.getProgress());
 
     try {
       while (dataIterator.hasNext()) {
         DataPoint next = dataIterator.next();
         long dataIndex = dataIterator.getDataIndex();
         serialController.writeData(formatPoint(dataIndex, next));
-        progressListener.update(dataIterator.getStrokeProgress(), dataIterator.getTotalProgress());
+        progressListener.update(dataIterator.getProgress());
         while(isPaused || currentProgress < dataIndex) {
           Thread.sleep(SLEEP_TIME);
         }
@@ -147,6 +150,6 @@ public class PlotWriter implements SerialController.DataListener {
   
   @FunctionalInterface
   public interface ProgressListener {
-    public void update(double strokeProgress, double totalProgress);
+    public void update(PlotDataIterator.PlotProgress progress);
   }
 }
