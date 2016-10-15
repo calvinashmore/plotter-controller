@@ -3,6 +3,8 @@
 #include <LiquidCrystal.h>
 #include <Servo.h>
 
+#include <vector>
+
 AccelStepper stepper1(AccelStepper::DRIVER, 9, 8);
 AccelStepper stepper2(AccelStepper::DRIVER, 11, 10);
 
@@ -14,6 +16,7 @@ LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
 #define ENABLE_PIN 12
 
 void setup() {
+
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
   // Print a message to the LCD.

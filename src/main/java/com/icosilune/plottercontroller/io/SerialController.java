@@ -38,9 +38,6 @@ public class SerialController {
   }
 
   public SerialController() {
-//    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-//      disconnect();
-//    }));
   }
   
   public void disconnect() {

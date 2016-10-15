@@ -94,6 +94,7 @@ public class MainPanel extends JPanel {
     // display plot name??
     this.currentPlot = plot;
     plotView.setPlot(plot);
+    channelEditors.updatePlot(plot);
   }
   
   void updateProgress(PlotDataIterator.PlotProgress progress) {
