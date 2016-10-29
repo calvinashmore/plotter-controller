@@ -5,21 +5,11 @@
  */
 package com.icosilune.plottercontroller;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.icosilune.plottercontroller.ui.MainPanel;
-import com.icosilune.plottercontroller.ui.PlotView;
-import java.awt.Dimension;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.concurrent.Executors;
 import javax.swing.JFrame;
-import jssc.SerialPort;
 import jssc.SerialPortException;
-import jssc.SerialPortList;
 
 /**
  *

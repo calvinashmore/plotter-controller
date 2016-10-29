@@ -5,6 +5,7 @@
  */
 package com.icosilune.plottercontroller.io;
 
+import com.icosilune.arduino.rpc.SerialController;
 import com.icosilune.plottercontroller.data.DataChannel;
 import com.icosilune.plottercontroller.data.DataPoint;
 import com.icosilune.plottercontroller.data.Plot;

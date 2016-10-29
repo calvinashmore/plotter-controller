@@ -5,11 +5,14 @@
  */
 package com.icosilune.plottercontroller.io;
 
+import com.icosilune.arduino.rpc.SerialController;
+import com.icosilune.arduino.rpc.ArduinoCommand;
+
 /**
  *
  * @author ashmore
  */
-public class MoveToCommand implements PlotterCommand {
+public class MoveToCommand implements ArduinoCommand {
 
   @Override
   public void execute(SerialController controller) {

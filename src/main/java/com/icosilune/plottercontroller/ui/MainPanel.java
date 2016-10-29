@@ -11,7 +11,7 @@ import com.icosilune.plottercontroller.data.Plot;
 import com.icosilune.plottercontroller.data.PlotDataIterator;
 import com.icosilune.plottercontroller.data.PlotReader;
 import com.icosilune.plottercontroller.io.PlotWriter;
-import com.icosilune.plottercontroller.io.SerialController;
+import com.icosilune.arduino.rpc.SerialController;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.io.File;
