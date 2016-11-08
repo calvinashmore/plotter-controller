@@ -45,6 +45,8 @@ void readyForNextData();
 // RPCs
 DECL_RPC_CALLBACK1(enable, int);
 DECL_RPC_CALLBACK7(handleData, longlong, float, float, float, float, float, float);
+DECL_RPC_CALLBACK2(moveXY, float, float);
+DECL_RPC_CALLBACK2(moveAxis, int, float);
 IMPL_RPC_CALL1(reportProgress, longlong);
 
 void setup() {
@@ -69,12 +71,16 @@ void loop() {
     enableSteppers(true);
     if (hasData) {
       doStuff();
+    } else {
+      lcd.setCursor(0, 0);
+      lcd.print("Waiting");
+      lcd.setCursor(0, 1);
     }
 
   } else {
     enableSteppers(false);
     lcd.setCursor(0, 0);
-    lcd.print("Ready");
+    lcd.print(rpc::getInputBuffer());
     lcd.setCursor(0, 1);
   }
 
@@ -154,6 +160,37 @@ void handleData(long long index, float position_x, float position_y, float speed
     currentData = nextData;
     hasData = true;
   }
+}
+
+void moveXY(float position_x, float position_y) {
+  currentData.position_x = position_x;
+  currentData.position_y = position_y;
+  hasData = true;
+}
+
+void moveAxis(int axis, float value) {
+  switch(axis) {
+  case 0:
+    currentData.position_x = value;
+    break;
+  case 1:
+    currentData.position_y = value;
+    break;
+  case 2:
+    currentData.speed = value;
+    break;
+  case 3:
+    currentData.pressure_z = value;
+    break;
+  case 4:
+    currentData.pitch = value;
+    break;
+  case 5:
+    currentData.yaw = value;
+    break;
+  }
+  isStarted = true;
+  hasData = true;
 }
 
 } // namespace plotter

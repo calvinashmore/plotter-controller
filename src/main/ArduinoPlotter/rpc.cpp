@@ -83,6 +83,11 @@ void processCallbacks(char* command) {
 char inputBuffer[COMMAND_SIZE];
 int bufferIndex = 0;
 
+// DEBUG ONLY
+char* getInputBuffer() {
+  return inputBuffer;
+}
+
 void handleRpcInput() {
   while(Serial.available()) {
     char c = Serial.read();

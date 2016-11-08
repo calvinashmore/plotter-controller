@@ -12,6 +12,7 @@ import com.icosilune.plottercontroller.data.PlotDataIterator;
 import com.icosilune.plottercontroller.data.PlotReader;
 import com.icosilune.plottercontroller.io.PlotWriter;
 import com.icosilune.arduino.rpc.SerialController;
+import com.icosilune.plottercontroller.io.PlotterController;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -35,6 +36,7 @@ public class MainPanel extends JPanel {
   
   private final PlotView plotView;
   private final SerialController serialController;
+  private final PlotterController plotterController;
   
   private final AbstractAction loadPlot = new LoadPlotAction();
   private final AbstractAction connect = new ConnectAction();
@@ -61,17 +63,14 @@ public class MainPanel extends JPanel {
     buttonPanel.add(new JButton(unpause));
     add(buttonPanel,BorderLayout.NORTH);
     
-//    JPanel channelEditorPanel = new JPanel();
-//    channelEditorPanel.add(new ChannelEditor(DataChannel.POSITION_X));
-//    add(channelEditorPanel, BorderLayout.EAST);
-    add(channelEditors = new ChannelEditors(), BorderLayout.EAST);
-    
-    
     plotView = new PlotView();
     add(plotView, BorderLayout.CENTER);
     
     this.serialController = new SerialController();
+    this.plotterController = new PlotterController(serialController, new PlotterListener());
     configureButtons();
+
+    add(channelEditors = new ChannelEditors(plotterController), BorderLayout.EAST);
   }
   
   private void configureButtons() {
@@ -165,6 +164,15 @@ public class MainPanel extends JPanel {
         }
       }
       configureButtons();
+      
+      // Wait for the connection to be ready on the controller side
+      try {
+        Thread.sleep(1000L);
+      } catch (InterruptedException ex) {
+        Logger.getLogger(MainPanel.class.getName()).log(Level.SEVERE, null, ex);
+      }
+      
+      plotterController.enable(true);
     }
   }
   
@@ -175,6 +183,7 @@ public class MainPanel extends JPanel {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+      plotterController.enable(false);
       serialController.disconnect();
       configureButtons();
     }
@@ -211,6 +220,15 @@ public class MainPanel extends JPanel {
           JOptionPane.showMessageDialog(MainPanel.this, "File could not be read!");
           Logger.getLogger(MainPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
+      }
+    }
+  }
+  
+  private class PlotterListener implements PlotterController.PlotterListener {
+    @Override
+    public void reportProgress(long progress) {
+      if(plotWriter != null) {
+        plotWriter.handleProgress(progress);
       }
     }
   }

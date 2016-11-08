@@ -12,6 +12,7 @@ import com.icosilune.plottercontroller.data.DataChannel;
 import com.icosilune.plottercontroller.data.Extents;
 import com.icosilune.plottercontroller.data.Plot;
 import com.icosilune.plottercontroller.data.PlotDataIterator;
+import com.icosilune.plottercontroller.io.PlotterController;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -19,12 +20,10 @@ import java.awt.event.ActionEvent;
 import java.text.NumberFormat;
 import java.util.Map;
 import javax.swing.AbstractAction;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 
 /**
  *
@@ -33,8 +32,9 @@ import javax.swing.JTextField;
 public class ChannelEditors extends JPanel {
 
   private final Map<DataChannel, ChannelEditor> editors;
+  private final PlotterController plotterController;
 
-  public ChannelEditors() {
+  public ChannelEditors(PlotterController plotterController) {
 
     setLayout(new GridBagLayout());
     //setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -51,6 +51,7 @@ public class ChannelEditors extends JPanel {
       constraints.gridx = 0;
     }
     this.editors = editors.build();
+    this.plotterController = plotterController;
   }
 
   public Extents getExtents() {
@@ -110,7 +111,7 @@ public class ChannelEditors extends JPanel {
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        
+        plotterController.moveAxis(channel.ordinal(), Float.valueOf(current.getText()));
       }
     }
   }

@@ -115,6 +115,9 @@ public class SerialController {
       Type t = Type.forClass(arg.getClass());
       sb.append(t.encode(arg));
     }
+    
+    LOG.log(Level.INFO, "Sent {0}", sb.toString());
+    
     sb.append("\n");
     
     writeData(sb.toString());
@@ -162,6 +165,7 @@ public class SerialController {
           if(string.indexOf('\n') > 0) {
             String command = string.substring(0, string.indexOf('\n'));
             executeCommand(command);
+            LOG.log(Level.INFO, "Received {0}", command);
           }
 
         } catch (SerialPortException ex) {
