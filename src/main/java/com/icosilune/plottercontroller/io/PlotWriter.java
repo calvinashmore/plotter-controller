@@ -73,9 +73,9 @@ public class PlotWriter {
       }
     } catch (InterruptedException ex) {
       LOG.warning("Interrupted while streaming data!");
+      return;
     }
     LOG.info("Finished!!!");
-    serialController.disconnect();
   }
   
   public void pause() {

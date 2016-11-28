@@ -135,7 +135,7 @@ public class SerialController {
   }
 
   private void executeCommand(String command) {
-    Iterator<String> split = Splitter.on(" ").split(command).iterator();
+    Iterator<String> split = Splitter.on(" ").omitEmptyStrings().trimResults().split(command).iterator();
     String commandName = split.next();
     String commandArgs = "";
     if(split.hasNext()) {
@@ -153,20 +153,60 @@ public class SerialController {
   private class SerialPortEventListenerImpl implements SerialPortEventListener {
 
     private final Charset charset = Charset.forName("US-ASCII");
-    private final ByteBuffer buffer = ByteBuffer.allocate(1024);
+//    private final ByteBuffer buffer = ByteBuffer.allocate(1024);
+    String buffer = "";
 
     @Override
     public void serialEvent(SerialPortEvent event) {
       if (event.isRXCHAR() && event.getEventValue() > 0) {
         try {
-          buffer.put(serialPort.readBytes());
           
-          String string = new String(buffer.array(), charset);
-          if(string.indexOf('\n') > 0) {
-            String command = string.substring(0, string.indexOf('\n'));
+          buffer += new String(serialPort.readBytes(), charset);
+          
+          while(buffer.indexOf('\n') > 0) {
+            int newline = buffer.indexOf('\n');
+            String command = buffer.substring(0, newline);
             executeCommand(command);
-            LOG.log(Level.INFO, "Received {0}", command);
+            buffer = buffer.substring(newline+1);
           }
+          
+//          buffer.put(serialPort.readBytes());
+          // position += byte length
+          // limit += byte length
+
+//          String s = new String(buffer.array(),0,buffer.limit(), charset);
+//          if(s.indexOf('\n') > 0) {
+//            int newline = s.indexOf('\n');
+//            String command = s.substring(0, newline);
+//            executeCommand(command);
+//            
+//            // filled data in buffer: [0, limit]
+//            // command: [0, newline]
+//            // want to copy [newline, limit] to 0
+//            // and set position to limit - newline
+//            System.arraycopy(buffer.array(), newline, buffer.array(), 0, buffer.limit() - newline);
+//            int limit = buffer.limit();
+//            buffer.position(limit - newline);
+//            
+//          } else {
+//            // keep adding to the buffer.
+////            int limit = buffer.limit();
+////            buffer.position(limit);
+//          }
+
+          // ISSUES:
+          // 1) reportProgress is not sending its argument
+          // 2) we're parsing the serial data badly, and throwing out all but the first thing that's read
+          // 3) we're receiving serial data from the previous run. There's no serial clearing.
+          
+//          String string = new String(buffer.array(), charset);
+//          if(string.indexOf('\n') > 0) {
+//            String command = string.substring(0, string.indexOf('\n'));
+//            executeCommand(command);
+//            Arrays.fill(buffer.array(), (byte) 0);
+//            buffer.clear();
+//            LOG.log(Level.INFO, "Received {0}", command);
+//          }
 
         } catch (SerialPortException ex) {
           LOG.log(Level.WARNING, "Caught serial exception", ex);

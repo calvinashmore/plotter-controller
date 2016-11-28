@@ -3,9 +3,6 @@
 #define RPC_H
 
 namespace rpc {
-  
-// DEBUG ONLY
-char* getInputBuffer();
 
 // Use this to avoid issues with macro concatenation
 typedef long long longlong;

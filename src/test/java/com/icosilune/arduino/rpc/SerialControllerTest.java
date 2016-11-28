@@ -50,12 +50,31 @@ public class SerialControllerTest {
     controller.connect();
     controller.sendCommand("hello", -1, 0.1f);
     
-    Mockito.verify(serialPort).writeString("hello FFFFFFFFCDCCCC3D\n");
+    Mockito.verify(serialPort).writeString("hello FFFFFFFF3DCCCCCD\n");
   }
   
   @Test
   public void testReceiveData() throws SerialPortException, UnsupportedEncodingException {
+    abstract class ListenerObject {
+      abstract void doStuff(int a, float b, long c);
+    }
+    class FakeListener extends CommandListener {
+      private final ListenerObject obj;
+      FakeListener(String name, ListenerObject obj) {
+        super(name, Type.INT, Type.FLOAT, Type.LONG);
+        this.obj = obj;
+      }
 
+      @Override
+      public void process(Object[] args) {
+        Truth.assertThat(args.length).isEqualTo(3);
+        int a = (int) args[0];
+        float b = (float) args[1];
+        long c = (long) args[2];
+        obj.doStuff(a, b, c);
+      }
+    }
+    
     ListenerObject listenerObj = Mockito.mock(ListenerObject.class);
     FakeListener commandListener = new FakeListener("hello", listenerObj);
     
@@ -64,8 +83,7 @@ public class SerialControllerTest {
     SerialPortEventListener listener = eventListenerCaptor.getValue();
 
     // https://www.h-schmidt.net/FloatConverter/IEEE754.html
-    // 0x3dcccccd in big endian
-    byte[] bytes = "hello FFFFFFFFCDCCCC3D0000000000000000\n".getBytes("US-ASCII");
+    byte[] bytes = "hello FFFFFFFF3DCCCCCD0000000000000000\n".getBytes("US-ASCII");
     Mockito.when(serialPort.readBytes()).thenReturn(bytes);
 
     listener.serialEvent(new SerialPortEvent("fakePortName", SerialPortEvent.RXCHAR, 10));
@@ -73,25 +91,50 @@ public class SerialControllerTest {
     Mockito.verify(listenerObj).doStuff(-1, 0.1f, 0L);
   }
   
-  interface ListenerObject {
-    void doStuff(int a, float b, long c);
-  }
-  
-  class FakeListener extends CommandListener {
-    private final ListenerObject obj;
-
-    FakeListener(String name, ListenerObject obj) {
-      super(name, Type.INT, Type.FLOAT, Type.LONG);
-      this.obj = obj;
+  @Test
+  public void testReceiveData_partial() throws SerialPortException, UnsupportedEncodingException {
+    abstract class ListenerObject {
+      abstract void doStuff(int a);
     }
+    class FakeListener extends CommandListener {
+      private final ListenerObject obj;
+      FakeListener(String name, ListenerObject obj) {
+        super(name, Type.INT);
+        this.obj = obj;
+      }
 
-    @Override
-    public void process(Object[] args) {
-      Truth.assertThat(args.length).isEqualTo(3);
-      int a = (int) args[0];
-      float b = (float) args[1];
-      long c = (long) args[2];
-      obj.doStuff(a, b, c);
+      @Override
+      public void process(Object[] args) {
+        Truth.assertThat(args.length).isEqualTo(1);
+        obj.doStuff((int) args[0]);
+      }
     }
+    
+    ListenerObject listenerObj = Mockito.mock(ListenerObject.class);
+    FakeListener commandListener = new FakeListener("hello", listenerObj);
+    
+    controller.connect();
+    controller.addListener(commandListener);
+    SerialPortEventListener listener = eventListenerCaptor.getValue();
+
+    byte[] bytes = "he".getBytes("US-ASCII");
+    Mockito.when(serialPort.readBytes()).thenReturn(bytes);
+    listener.serialEvent(new SerialPortEvent("fakePortName", SerialPortEvent.RXCHAR, 10));
+    Mockito.verifyZeroInteractions(listenerObj);
+    
+    bytes = "llo FFFFFFFF\nhello ".getBytes("US-ASCII");
+    Mockito.when(serialPort.readBytes()).thenReturn(bytes);
+    listener.serialEvent(new SerialPortEvent("fakePortName", SerialPortEvent.RXCHAR, 10));
+    Mockito.verify(listenerObj).doStuff(-1);
+    
+    bytes = "000000FF ".getBytes("US-ASCII");
+    Mockito.when(serialPort.readBytes()).thenReturn(bytes);
+    listener.serialEvent(new SerialPortEvent("fakePortName", SerialPortEvent.RXCHAR, 10));
+    Mockito.verifyNoMoreInteractions(listenerObj);
+    
+    bytes = "\n    ".getBytes("US-ASCII");
+    Mockito.when(serialPort.readBytes()).thenReturn(bytes);
+    listener.serialEvent(new SerialPortEvent("fakePortName", SerialPortEvent.RXCHAR, 10));
+    Mockito.verify(listenerObj).doStuff(255);
   }
 }

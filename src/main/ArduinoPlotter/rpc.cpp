@@ -83,11 +83,6 @@ void processCallbacks(char* command) {
 char inputBuffer[COMMAND_SIZE];
 int bufferIndex = 0;
 
-// DEBUG ONLY
-char* getInputBuffer() {
-  return inputBuffer;
-}
-
 void handleRpcInput() {
   while(Serial.available()) {
     char c = Serial.read();
@@ -107,11 +102,11 @@ void callClientRpc(char* command, Type types[], CallbackArgs args[]) {
   
   char* pos = toSend;
   
-  sprintf(toSend, "%s ", command);
-  pos += sizeof(command)+2;
-  int totalLength = sizeof(command)+2;
+  int length = sprintf(toSend, "%s ", command);
+  pos += length; //sizeof(command)+1;
+  int totalLength = sizeof(command)+1;
   
-  int numberArgs = sizeof(args)/sizeof(CallbackArgs);
+  int numberArgs = sizeof(args);
   
   for (int i=0; i<numberArgs; i++) {
     Type type = types[i];
@@ -127,9 +122,15 @@ void callClientRpc(char* command, Type types[], CallbackArgs args[]) {
     formatHex(pos, (byte*) &args[i], typeSize);
     pos += argSize;
   }
+
+  // null terminate the string
+  toSend[totalLength] = 0;
   
   // RPC send
-  Serial.println(toSend);
+  Serial.print("   ");
+  Serial.print(toSend);
+  Serial.print("   ");
+  Serial.println();
 }
 
 } // namespace rpc

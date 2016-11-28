@@ -36,21 +36,21 @@ public enum Type {
     switch(this) {
       case INT: {
         int value = (int) obj;
-        ByteBuffer b = ByteBuffer.allocate(Integer.BYTES).order(ByteOrder.LITTLE_ENDIAN);
+        ByteBuffer b = ByteBuffer.allocate(Integer.BYTES).order(ByteOrder.BIG_ENDIAN);
         b.putInt(value);
         bytes = b.array();
         break;
       }
       case FLOAT: {
         float value = (float) obj;
-        ByteBuffer b = ByteBuffer.allocate(Float.BYTES).order(ByteOrder.LITTLE_ENDIAN);
+        ByteBuffer b = ByteBuffer.allocate(Float.BYTES).order(ByteOrder.BIG_ENDIAN);
         b.putFloat(value);
         bytes = b.array();
         break;
       }
       case LONG: {
         long value = (long) obj;
-        ByteBuffer b = ByteBuffer.allocate(Long.BYTES).order(ByteOrder.LITTLE_ENDIAN);
+        ByteBuffer b = ByteBuffer.allocate(Long.BYTES).order(ByteOrder.BIG_ENDIAN);
         b.putLong(value);
         bytes = b.array();
         break;
@@ -80,7 +80,7 @@ public enum Type {
       b[i] = (byte) v;
     }
     
-    ByteBuffer bb = ByteBuffer.wrap(b).order(ByteOrder.LITTLE_ENDIAN);
+    ByteBuffer bb = ByteBuffer.wrap(b).order(ByteOrder.BIG_ENDIAN);
     
     switch(this) {
       case INT: 

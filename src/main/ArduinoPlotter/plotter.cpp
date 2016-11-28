@@ -80,7 +80,7 @@ void loop() {
   } else {
     enableSteppers(false);
     lcd.setCursor(0, 0);
-    lcd.print(rpc::getInputBuffer());
+    lcd.print("Ready");
     lcd.setCursor(0, 1);
   }
 

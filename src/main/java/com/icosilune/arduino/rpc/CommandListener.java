@@ -43,7 +43,7 @@ public abstract class CommandListener {
     }
     process(args);
     } catch(IndexOutOfBoundsException | IllegalArgumentException ex) {
-      LOG.log(Level.WARNING,"Could not parse args {0} with types {1} in command {2} due to {3}",new Object[]{stringArgs, types,name, ex});
+      LOG.log(Level.WARNING,"Could not parse args \"{0}\" with types {1} in command {2} due to {3}",new Object[]{stringArgs, types,name, ex});
     }
   }
 
