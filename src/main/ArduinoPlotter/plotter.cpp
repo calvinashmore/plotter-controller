@@ -93,9 +93,9 @@ void doStuff() {
   lcd.print("        ");
   lcd.setCursor(0, 1);
 
-  long stepperCoodinates[2];
-  stepperCoodinates[0] = (long)(100*currentData.position_x);
-  stepperCoodinates[1] = (long)(100*currentData.position_y);
+  long stepperCoordinates[2];
+  stepperCoordinates[0] = (long)(100*currentData.position_x);
+  stepperCoordinates[1] = (long)(100*currentData.position_y);
   
   // speed in steps/second
   // > 1000 are unreliable.
@@ -108,10 +108,11 @@ void doStuff() {
   lcd.print(" ");
   lcd.print(totalToGo);
   lcd.print(" ");
+  lcd.print(currentData.position_x);
   
   stepper1.setMaxSpeed(stepperSpeed);
   stepper2.setMaxSpeed(stepperSpeed);
-  multiStepper.moveTo(stepperCoodinates);
+  multiStepper.moveTo(stepperCoordinates);
   multiStepper.run();
 
   servo1.write(servoCoordinates);
