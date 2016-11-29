@@ -26,7 +26,7 @@ AccelStepper stepper1(AccelStepper::DRIVER, 9, 8);
 AccelStepper stepper2(AccelStepper::DRIVER, 11, 10);
 MultiStepper multiStepper;
 Servo servo1;
-LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+//LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
 
 #define ENABLE_PIN 12
 #define DELTA 5
@@ -104,11 +104,11 @@ void doStuff() {
 
   int totalToGo = abs(stepper1.distanceToGo()) + abs(stepper2.distanceToGo());
 
-  lcd.print(stepperSpeed);
-  lcd.print(" ");
-  lcd.print(totalToGo);
-  lcd.print(" ");
-  lcd.print(currentData.position_x);
+//  lcd.print(stepperSpeed);
+//  lcd.print(" ");
+//  lcd.print(totalToGo);
+//  lcd.print(" ");
+//  lcd.print(currentData.position_x);
   
   stepper1.setMaxSpeed(stepperSpeed);
   stepper2.setMaxSpeed(stepperSpeed);

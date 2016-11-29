@@ -1,0 +1,3 @@
+/src/main/ArduinoPlotter/*.o
+/src/main/ArduinoPlotter/tests
+/src/main/ArduinoPlotter/.depend

@@ -1,4 +1,5 @@
 
+#define ARDUINO
 #include "plotter.h"
 
 void setup() {

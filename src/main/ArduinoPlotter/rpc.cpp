@@ -6,10 +6,16 @@
 
 #include <stdio.h>
 #include <string.h>
+#ifdef ARDUINO
 #include <Arduino.h>
+#else
+#include "mock_serial.h"
+#endif
 #include "rpc.h"
 
 namespace rpc {
+
+//  LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
 
 typedef unsigned char byte;
 
@@ -44,15 +50,31 @@ void Callback::tryProcess(char* command) {
           command[strlen(_name)] == ' ' ) {
     
     char* args_string = command + strlen(_name) + 1;
+
+    CallbackArgs args[_arg_count];
+
+//    lcd.setCursor(0, 1);
+//    lcd.print("* ");
+//    lcd.print(_arg_count);
+//    lcd.print(" *");
     
-    int arg_count = sizeof(_types);
-    CallbackArgs args[arg_count];
-    
-    for(int i=0; i<arg_count; i++) {
+    for(int i=0; i<_arg_count; i++) {
       Type t = _types[i];
-      parseHex(args_string, (byte*) &args[i], typeSizeof(t));
-      args_string += 2*typeSizeof(t);
+      size_t typeSize = typeSizeof(t);
+      size_t typeOffset = 0;//CALLBACK_ARGS_DATA_SIZE - typeSize;
+      parseHex(args_string, &args[i].data[typeOffset], typeSize);
+      args_string += 2*typeSize;
     }
+
+//    if(_arg_count > 1) {
+//      lcd.setCursor(0, 1);
+//      lcd.print("* ");
+//      long k = (long)(args[1].to_longlong() >> 32);
+//      lcd.print( k );
+//      lcd.print(" ");
+//      lcd.print(args[1].to_float());
+//      lcd.print(" *");
+//    }
     
     doStuff(args);
   }

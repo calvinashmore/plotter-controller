@@ -2,7 +2,15 @@
 #ifndef RPC_H
 #define RPC_H
 
+#ifndef ARDUINO
+typedef unsigned char byte;
+#endif
+
+//#include <LiquidCrystal.h>
+
 namespace rpc {
+
+//extern LiquidCrystal lcd;
 
 // Use this to avoid issues with macro concatenation
 typedef long long longlong;
@@ -15,10 +23,33 @@ enum Type {
 };
 
 // Holder of an rpc parameter
-union CallbackArgs {
-  int int_v;
-  float float_v;
-  longlong longlong_v;
+#define CALLBACK_ARGS_DATA_SIZE 8
+struct CallbackArgs {
+  byte data[CALLBACK_ARGS_DATA_SIZE];
+
+  int to_int() {
+    return *((int*)&data[0]);
+  }
+
+  float to_float() {
+    return *((float*)&data[0]);
+  }
+
+  longlong to_longlong() {
+    return *((longlong*)&data[0]);
+  }
+
+  void from_int(int x) {
+    ((int*)&data[0])[0] = x;
+  }
+  
+  void from_float(float x) {
+    ((float*)&data[0])[0] = x;
+  }
+
+  void from_longlong(longlong x) {
+    ((longlong*)&data[0])[0] = x;
+  }
 };
 
 // Would like to make this generic. Difficult to do with the preprocessor, though, since it can't
@@ -30,7 +61,7 @@ union CallbackArgs {
 void NAME (T1 v1) { \
   Type types[] = {T1 ## _t}; \
   CallbackArgs args[1]; \
-  args[0]. T1 ## _v = v1; \
+  args[0]. from_ ## T1 (v1); \
   callClientRpc(#NAME, types, args); \
 }
 
@@ -40,8 +71,8 @@ void NAME (T1 v1, T2 v2) { \
       T1 ## _t, \
       T2 ## _t}; \
   CallbackArgs args[2]; \
-  args[0]. T1 ## _v = v1; \
-  args[1]. T2 ## _v = v2; \
+  args[0]. from_ ## T1 (v1); \
+  args[1]. from_ ## T2 (v2); \
   callClientRpc(#NAME, types, args); \
 }
 
@@ -52,9 +83,9 @@ void NAME (T1 v1, T2 v2, T3 v3) { \
       T2 ## _t, \
       T3 ## _t}; \
   CallbackArgs args[3]; \
-  args[0]. T1 ## _v = v1; \
-  args[1]. T2 ## _v = v2; \
-  args[2]. T3 ## _v = v3; \
+  args[0]. from_ ## T1 (v1); \
+  args[1]. from_ ## T2 (v2); \
+  args[2]. from_ ## T3 (v3); \
   callClientRpc(#NAME, types, args); \
 }
 
@@ -62,13 +93,14 @@ void NAME (T1 v1, T2 v2, T3 v3) { \
 void NAME (T1); \
 class NAME ## _Callback : public Callback { \
 public: \
-  NAME ## _Callback() : Callback(#NAME) {\
+  NAME ## _Callback() : Callback(#NAME, 1) {\
     _types = new Type[1]; \
     _types[0] = T1 ## _t; \
   } \
 protected: \
   void doStuff(CallbackArgs args[]) { \
-    NAME (args[0].T1 ## _v); \
+    NAME ( \
+      args[0].to_ ## T1 ()); \
   } \
 }
 
@@ -76,14 +108,16 @@ protected: \
 void NAME (T1, T2); \
 class NAME ## _Callback : public Callback { \
 public: \
-  NAME ## _Callback() : Callback(#NAME) {\
+  NAME ## _Callback() : Callback(#NAME, 2) {\
     _types = new Type[2]; \
     _types[0] = T1 ## _t; \
     _types[1] = T2 ## _t; \
   } \
 protected: \
   void doStuff(CallbackArgs args[]) { \
-    NAME (args[0].T1 ## _v, args[1].T2 ## _v); \
+    NAME ( \
+      args[0].to_ ## T1 (), \
+      args[1].to_ ## T2 ()); \
   } \
 }
 
@@ -91,7 +125,7 @@ protected: \
 void NAME (T1, T2, T3); \
 class NAME ## _Callback : public Callback { \
 public: \
-  NAME ## _Callback() : Callback(#NAME) {\
+  NAME ## _Callback() : Callback(#NAME, 3) {\
     _types = new Type[3]; \
     _types[0] = T1 ## _t; \
     _types[1] = T2 ## _t; \
@@ -100,9 +134,9 @@ public: \
 protected: \
   void doStuff(CallbackArgs args[]) { \
     NAME (\
-      args[0].T1 ## _v, \
-      args[1].T2 ## _v, \
-      args[2].T3 ## _v); \
+      args[0].to_ ## T1 (), \
+      args[1].to_ ## T2 (), \
+      args[2].to_ ## T3 ()); \
   } \
 }
 
@@ -112,7 +146,7 @@ protected: \
 void NAME (T1, T2, T3, T4, T5, T6, T7); \
 class NAME ## _Callback : public Callback { \
 public: \
-  NAME ## _Callback() : Callback(#NAME) {\
+  NAME ## _Callback() : Callback(#NAME, 7) {\
     _types = new Type[7]; \
     _types[0] = T1 ## _t; \
     _types[1] = T2 ## _t; \
@@ -125,13 +159,13 @@ public: \
 protected: \
   void doStuff(CallbackArgs args[]) { \
     NAME (\
-      args[0].T1 ## _v, \
-      args[1].T2 ## _v, \
-      args[2].T3 ## _v, \
-      args[3].T4 ## _v, \
-      args[4].T5 ## _v, \
-      args[5].T6 ## _v, \
-      args[6].T7 ## _v); \
+      args[0].to_ ## T1 (), \
+      args[1].to_ ## T2 (), \
+      args[2].to_ ## T3 (), \
+      args[3].to_ ## T4 (), \
+      args[4].to_ ## T5 (), \
+      args[5].to_ ## T6 (), \
+      args[6].to_ ## T7 ()); \
   } \
 }
 
@@ -139,13 +173,14 @@ protected: \
 
 class Callback {
 public:
-  Callback(char* name) : _name(name) {}
+  Callback(char* name, int arg_count) : _name(name), _arg_count(arg_count) {}
   void tryProcess(char* command);
 protected:
   virtual void doStuff(CallbackArgs args[]) = 0;
   Type *_types;
 private:
   char* _name;
+  int _arg_count;
 };
 
 // Registers a callback
