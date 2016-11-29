@@ -2,15 +2,9 @@
 #ifndef RPC_H
 #define RPC_H
 
-#ifndef ARDUINO
 typedef unsigned char byte;
-#endif
-
-//#include <LiquidCrystal.h>
 
 namespace rpc {
-
-//extern LiquidCrystal lcd;
 
 // Use this to avoid issues with macro concatenation
 typedef long long longlong;

@@ -1,4 +1,5 @@
 
+#ifndef ARDUINO
 #include <stdio.h>
 #include "mock_serial.h"
 
@@ -19,3 +20,5 @@ void MockSerial::print(char* s) {
 void MockSerial::println() {
   printf("\n");
 }
+
+#endif // ARDUINO

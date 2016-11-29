@@ -1,19 +1,30 @@
 
 #include <stdio.h>
 #include "rpc.h"
+
+#ifndef ARDUINO
 #include "mock_serial.h"
+#define PRINT printf
+#else
+#include <Arduino.h>
+#define PRINT Serial.print
+#endif
+
+namespace tests {
 
 using namespace rpc;
+using rpc::float_t;
+using rpc::int_t;
 
 #define RUN_TEST(NAME) \
-  printf("starting " #NAME "\n"); \
+  PRINT("starting " #NAME "\n"); \
   result = NAME(); \
-  printf("finished " #NAME ": "); \
-  printf(result ? "PASSED\n" : "FAILED\n"); \
+  PRINT("finished " #NAME ": "); \
+  PRINT(result ? "PASSED\n" : "FAILED\n"); \
   success &= result;
 
 #define ASSERT(EXPR) if(!(EXPR)) {\
-  printf("Not true that \"" #EXPR "\"\n"); \
+  PRINT("Not true that \"" #EXPR "\"\n"); \
   return false; \
   }
 
@@ -35,7 +46,6 @@ bool test_callbackArgs() {
 DECL_RPC_CALLBACK2(hello, longlong, float);
 longlong long_arg;
 float float_arg;
-//extern void processCallbacks(char* command);
 bool test_tryProcess() {
   
   hello_Callback callback;
@@ -51,14 +61,23 @@ void hello(longlong a, float b) {
   float_arg = b;
 }
 
-int main(int argc, char** argv) {
+bool run_suite() {
   bool success = true;
   bool result = false;
-  printf("Starting tests...\n");
+  PRINT("Starting tests...\n");
   
   RUN_TEST(test_callbackArgs);
   RUN_TEST(test_tryProcess);
   
-  printf("Finished\n");
+  PRINT("Finished\n");
   return success;
 }
+
+} // namespace tests
+
+#ifndef ARDUINO
+int main(int argc, char** argv) {
+  return tests::run_suite();
+}
+
+#endif

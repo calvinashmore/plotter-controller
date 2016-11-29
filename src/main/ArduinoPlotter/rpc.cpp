@@ -15,15 +15,16 @@
 
 namespace rpc {
 
-//  LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
-
 typedef unsigned char byte;
 
 // Utility method
 void parseHex(char* hexString, byte* out, size_t length) {
   char* pos = hexString;
   for (int count = length-1; count >= 0; count--) {
-    sscanf(pos, "%2hhx", &out[count]);
+    // sscanf has some issue in the Arduino environment where it writes over the existing bytes
+    int b;
+    sscanf(pos, "%2hhx", &b);
+    out[count] = b;
     pos += 2;
   }
 }
@@ -53,29 +54,13 @@ void Callback::tryProcess(char* command) {
 
     CallbackArgs args[_arg_count];
 
-//    lcd.setCursor(0, 1);
-//    lcd.print("* ");
-//    lcd.print(_arg_count);
-//    lcd.print(" *");
-    
     for(int i=0; i<_arg_count; i++) {
       Type t = _types[i];
       size_t typeSize = typeSizeof(t);
-      size_t typeOffset = 0;//CALLBACK_ARGS_DATA_SIZE - typeSize;
-      parseHex(args_string, &args[i].data[typeOffset], typeSize);
+      parseHex(args_string, &args[i].data[0], typeSize);
       args_string += 2*typeSize;
     }
 
-//    if(_arg_count > 1) {
-//      lcd.setCursor(0, 1);
-//      lcd.print("* ");
-//      long k = (long)(args[1].to_longlong() >> 32);
-//      lcd.print( k );
-//      lcd.print(" ");
-//      lcd.print(args[1].to_float());
-//      lcd.print(" *");
-//    }
-    
     doStuff(args);
   }
 }
