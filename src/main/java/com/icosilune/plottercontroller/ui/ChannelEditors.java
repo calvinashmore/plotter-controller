@@ -110,7 +110,7 @@ public class ChannelEditors extends JPanel {
       }
 
       @Override
-      public void actionPerformed(ActionEvent e) {
+      public void actionPerformed(ActionEvent e) {   
         plotterController.moveAxis(channel.ordinal(), Float.valueOf(current.getText()));
       }
     }

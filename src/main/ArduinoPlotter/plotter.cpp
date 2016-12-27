@@ -53,6 +53,8 @@ void setup() {
   
   REGISTER_RPC_CALLBACK(enable);
   REGISTER_RPC_CALLBACK(handleData);
+  REGISTER_RPC_CALLBACK(moveXY);
+  REGISTER_RPC_CALLBACK(moveAxis);
 
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
@@ -101,6 +103,13 @@ void doStuff() {
   // > 1000 are unreliable.
   float stepperSpeed = max(100*currentData.speed,10);
   int servoCoordinates = (int)(currentData.pitch);
+  
+  stepper1.setMaxSpeed(stepperSpeed);
+  stepper2.setMaxSpeed(stepperSpeed);
+  multiStepper.moveTo(stepperCoordinates);
+  multiStepper.run();
+
+  servo1.write(servoCoordinates);
 
   int totalToGo = abs(stepper1.distanceToGo()) + abs(stepper2.distanceToGo());
 
@@ -109,13 +118,6 @@ void doStuff() {
   lcd.print(totalToGo);
   lcd.print(" ");
   lcd.print(currentData.position_x);
-  
-  stepper1.setMaxSpeed(stepperSpeed);
-  stepper2.setMaxSpeed(stepperSpeed);
-  multiStepper.moveTo(stepperCoordinates);
-  multiStepper.run();
-
-  servo1.write(servoCoordinates);
 
   if(totalToGo < DELTA) {
     readyForNextData();
@@ -138,11 +140,11 @@ void enableSteppers(boolean enabled) {
 // RPC impls
 
 void enable(int enabled) {
-  if (enabled && !isStarted) {
+  if (enabled) {
     isStarted = true;
   }
 
-  if (!enabled && isStarted) {
+  if (!enabled) {
     isStarted = false;
     hasData = false;  
   }
@@ -190,7 +192,7 @@ void moveAxis(int axis, float value) {
     currentData.yaw = value;
     break;
   }
-  isStarted = true;
+  nextData = currentData;
   hasData = true;
 }
 
