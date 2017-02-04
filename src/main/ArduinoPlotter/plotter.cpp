@@ -24,9 +24,12 @@ struct Data {
 // Controls
 AccelStepper stepper1(AccelStepper::DRIVER, 9, 8);
 AccelStepper stepper2(AccelStepper::DRIVER, 11, 10);
+AccelStepper stepper3(AccelStepper::DRIVER, 32, 33);
 MultiStepper multiStepper;
 Servo servo1;
-LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+Servo servo2;
+//LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+LiquidCrystal lcd(7, 6, 2, 3, 4, 5);
 
 #define ENABLE_PIN 12
 #define DELTA 5
@@ -63,9 +66,11 @@ void setup() {
 
   multiStepper.addStepper(stepper1);
   multiStepper.addStepper(stepper2);
+  multiStepper.addStepper(stepper3);
 
   pinMode(ENABLE_PIN, OUTPUT);
-  servo1.attach(13);
+  servo1.attach(31);
+  servo2.attach(30);
 }
 
 void loop() {
@@ -95,21 +100,25 @@ void doStuff() {
   lcd.print("        ");
   lcd.setCursor(0, 1);
 
-  long stepperCoordinates[2];
+  long stepperCoordinates[3];
   stepperCoordinates[0] = (long)(100*currentData.position_x);
   stepperCoordinates[1] = (long)(100*currentData.position_y);
+  stepperCoordinates[2] = (long)(10*currentData.yaw);
   
   // speed in steps/second
   // > 1000 are unreliable.
   float stepperSpeed = max(100*currentData.speed,10);
-  int servoCoordinates = (int)(currentData.pitch);
+  int servo1Coordinates = (int)(currentData.pitch);
+  int servo2Coordinates = (int)(currentData.pressure_z);
   
   stepper1.setMaxSpeed(stepperSpeed);
   stepper2.setMaxSpeed(stepperSpeed);
+  stepper3.setMaxSpeed(stepperSpeed);
   multiStepper.moveTo(stepperCoordinates);
   multiStepper.run();
 
-  servo1.write(servoCoordinates);
+  servo1.write(servo1Coordinates);
+  servo2.write(servo2Coordinates);
 
   int totalToGo = abs(stepper1.distanceToGo()) + abs(stepper2.distanceToGo());
 
