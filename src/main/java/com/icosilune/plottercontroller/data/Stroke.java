@@ -7,7 +7,6 @@ package com.icosilune.plottercontroller.data;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
-import com.sun.istack.internal.Nullable;
 import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
 import java.util.Iterator;

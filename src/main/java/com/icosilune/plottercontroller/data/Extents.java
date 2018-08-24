@@ -9,7 +9,6 @@ import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Range;
-import com.sun.istack.internal.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -26,7 +25,7 @@ public class Extents {
     this.values = ImmutableMap.copyOf(values);
   }
 
-  @Nullable
+  //@Nullable
   public Range<Double> get(DataChannel channel) {
     return values.get(channel);
   }

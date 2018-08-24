@@ -43,6 +43,17 @@ public class ChannelEditors extends JPanel {
     constraints.gridx = 0;
     constraints.gridy = 0;
     
+    add(new JLabel("channel"));
+    constraints.gridx = 1;
+    add(new JLabel("min"));
+    constraints.gridx = 2;
+    add(new JLabel("max"));
+    constraints.gridx = 3;
+    add(new JLabel("current"));
+    
+    constraints.gridx = 0;
+    constraints.gridy = 1;
+    
     ImmutableMap.Builder<DataChannel, ChannelEditor> editors = ImmutableMap.builder();
     for (DataChannel dataChannel : DataChannel.values()) {
       ChannelEditor editor = new ChannelEditor(dataChannel, constraints);

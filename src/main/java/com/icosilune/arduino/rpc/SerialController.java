@@ -74,6 +74,7 @@ public class SerialController {
       }
     } catch (SerialPortException ex) {
       LOG.log(Level.SEVERE, "Caught serial exception", ex);
+      serialPort = null;
     }
   }
   

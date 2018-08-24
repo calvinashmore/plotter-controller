@@ -22,16 +22,15 @@ struct Data {
 };
 
 // Controls
-AccelStepper stepper1(AccelStepper::DRIVER, 9, 8);
-AccelStepper stepper2(AccelStepper::DRIVER, 11, 10);
-AccelStepper stepper3(AccelStepper::DRIVER, 32, 33);
+AccelStepper stepper1(AccelStepper::DRIVER, 22, 24); // X
+AccelStepper stepper2(AccelStepper::DRIVER, 26, 28); // Y
+AccelStepper stepper3(AccelStepper::DRIVER, 30, 32); // yaw
 MultiStepper multiStepper;
-Servo servo1;
-Servo servo2;
-//LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
-LiquidCrystal lcd(7, 6, 2, 3, 4, 5);
+Servo servo1; // pitch
+Servo servo2; // pressure
+LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
 
-#define ENABLE_PIN 12
+#define ENABLE_PIN 38
 #define DELTA 5
 
 // State
@@ -69,8 +68,8 @@ void setup() {
   multiStepper.addStepper(stepper3);
 
   pinMode(ENABLE_PIN, OUTPUT);
-  servo1.attach(31);
-  servo2.attach(30);
+//  servo1.attach(34);
+//  servo2.attach(36);
 }
 
 void loop() {
