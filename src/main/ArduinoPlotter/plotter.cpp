@@ -24,7 +24,7 @@ struct Data {
 // Controls
 AccelStepper stepper1(AccelStepper::DRIVER, 22, 24); // X
 AccelStepper stepper2(AccelStepper::DRIVER, 26, 28); // Y
-AccelStepper stepper3(AccelStepper::DRIVER, 30, 32); // yaw
+AccelStepper stepper3(AccelStepper::DRIVER, 32, 30); // yaw
 MultiStepper multiStepper;
 Servo servo1; // pitch
 Servo servo2; // pressure
@@ -32,6 +32,9 @@ LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
 
 #define ENABLE_PIN 38
 #define DELTA 5
+
+#define MIN_STEPPER_SPEED 100
+#define MAX_STEPPER_SPEED 900
 
 // State
 Data currentData;
@@ -68,8 +71,8 @@ void setup() {
   multiStepper.addStepper(stepper3);
 
   pinMode(ENABLE_PIN, OUTPUT);
-//  servo1.attach(34);
-//  servo2.attach(36);
+  servo1.attach(34);
+  servo2.attach(36);
 }
 
 void loop() {
@@ -94,19 +97,19 @@ void loop() {
 }
 
 void doStuff() {
-  lcd.setCursor(0, 0);
-  lcd.print((unsigned long) currentData.index);
-  lcd.print("        ");
-  lcd.setCursor(0, 1);
+//  lcd.setCursor(0, 0);
+//  lcd.print((unsigned long) currentData.index);
+//  lcd.print("        ");
+//  lcd.setCursor(0, 1);
 
   long stepperCoordinates[3];
   stepperCoordinates[0] = (long)(100*currentData.position_x);
   stepperCoordinates[1] = (long)(100*currentData.position_y);
-  stepperCoordinates[2] = (long)(10*currentData.yaw);
+  stepperCoordinates[2] = (long)(100*currentData.yaw);
   
   // speed in steps/second
   // > 1000 are unreliable.
-  float stepperSpeed = max(100*currentData.speed,10);
+  float stepperSpeed = min(MAX_STEPPER_SPEED, max(100*currentData.speed, MIN_STEPPER_SPEED));
   int servo1Coordinates = (int)(currentData.pitch);
   int servo2Coordinates = (int)(currentData.pressure_z);
   
@@ -121,11 +124,11 @@ void doStuff() {
 
   int totalToGo = abs(stepper1.distanceToGo()) + abs(stepper2.distanceToGo());
 
-  lcd.print(stepperSpeed);
-  lcd.print(" ");
-  lcd.print(totalToGo);
-  lcd.print(" ");
-  lcd.print(currentData.position_x);
+//  lcd.print(stepperSpeed);
+//  lcd.print(" ");
+//  lcd.print(totalToGo);
+//  lcd.print(" ");
+//  lcd.print(currentData.position_x);
 
   if(totalToGo < DELTA) {
     readyForNextData();
