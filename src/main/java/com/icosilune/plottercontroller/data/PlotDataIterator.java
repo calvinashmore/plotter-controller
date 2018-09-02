@@ -27,13 +27,13 @@ public class PlotDataIterator implements Iterator<DataPoint> {
 
   // Might be nice to have accessors to power a UI or something.
   
-  private enum State {
+  public enum State {
     PRE_START,
     POSITIONING,
     STROKE,
     DONE,
   }
-
+  
   public PlotDataIterator(Plot plot) {
     this.plot = plot;
   }
@@ -41,6 +41,10 @@ public class PlotDataIterator implements Iterator<DataPoint> {
   @Override
   public boolean hasNext() {
     return currentState != State.DONE;
+  }
+  
+  public State getState() {
+    return currentState;
   }
   
   @Override
@@ -86,6 +90,7 @@ public class PlotDataIterator implements Iterator<DataPoint> {
     public abstract int getStrokeIndex();
     public abstract int getTotalStrokes();
     public abstract DataPoint getPoint();
+    public abstract State getState();
     
     public double getStrokeProgress() {
       return getPointIndex() / (double) getTotalPoints();
@@ -95,8 +100,8 @@ public class PlotDataIterator implements Iterator<DataPoint> {
       return getStrokeIndex() / (double) getTotalStrokes();
     }
 
-    static PlotProgress create(int pointIndex, int totalPoints, int strokeIndex, int totalStrokes, DataPoint point) {
-      return new AutoValue_PlotDataIterator_PlotProgress(pointIndex, totalPoints, strokeIndex, totalStrokes, point);
+    static PlotProgress create(int pointIndex, int totalPoints, int strokeIndex, int totalStrokes, DataPoint point, State state) {
+      return new AutoValue_PlotDataIterator_PlotProgress(pointIndex, totalPoints, strokeIndex, totalStrokes, point, state);
     }
   }
   
@@ -106,7 +111,8 @@ public class PlotDataIterator implements Iterator<DataPoint> {
         currentStroke == null ? 1 : currentStroke.getNumberDataPoints(),
         strokeIndex,
         plot.getStrokes().size(),
-        currentPoint);
+        currentPoint,
+        currentState);
   }
 
 //  public double getStrokeProgress() {
