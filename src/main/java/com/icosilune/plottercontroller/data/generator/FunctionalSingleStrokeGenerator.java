@@ -32,7 +32,9 @@ public abstract class FunctionalSingleStrokeGenerator extends SingleStrokeGenera
     builder.put(DataChannel.POSITION_X, functions.get(DataChannel.POSITION_X));
     builder.put(DataChannel.POSITION_Y, functions.get(DataChannel.POSITION_Y));
     builder.put(DataChannel.SPEED, functions.getOrDefault(DataChannel.SPEED, t -> 9.0));
-    builder.put(DataChannel.SPEED, functions.getOrDefault(DataChannel.SPEED, t -> 9.0));
+    builder.put(DataChannel.PITCH, functions.getOrDefault(DataChannel.PITCH, t -> 0.0));
+    builder.put(DataChannel.YAW, functions.getOrDefault(DataChannel.YAW, t -> 0.0));
+    builder.put(DataChannel.PRESSURE_Z, functions.getOrDefault(DataChannel.PRESSURE_Z, t -> 0.0));
     
     this.functions = builder.build();
   }
@@ -41,9 +43,16 @@ public abstract class FunctionalSingleStrokeGenerator extends SingleStrokeGenera
   Stroke generateStroke() {
     Map<DataChannel, double[]> dataBuffers = new LinkedHashMap<>();
     
+    for (DataChannel channel : DataChannel.values()) {
+      double[] buffer = new double[plotPoints];
+      for (int i=0; i<plotPoints; i++) {
+        double t = ((double)i)/plotPoints;
+        buffer[i] = functions.get(channel).apply(t);
+      }
+      dataBuffers.put(channel, buffer);
+    }
     
-    
-    return new Stroke(dataBuffers)
+    return new Stroke(dataBuffers);
   }
   
   

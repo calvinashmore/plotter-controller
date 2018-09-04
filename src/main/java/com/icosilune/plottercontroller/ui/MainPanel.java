@@ -12,6 +12,7 @@ import com.icosilune.plottercontroller.data.PlotDataIterator;
 import com.icosilune.plottercontroller.data.PlotReader;
 import com.icosilune.plottercontroller.io.PlotWriter;
 import com.icosilune.arduino.rpc.SerialController;
+import com.icosilune.plottercontroller.data.generator.CircleGenerator;
 import com.icosilune.plottercontroller.io.PlotterController;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
@@ -195,31 +196,34 @@ public class MainPanel extends JPanel {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      JFileChooser chooser = new JFileChooser();
-      FileNameExtensionFilter filter = new FileNameExtensionFilter(
-          "CSV files", "csv");
-      chooser.setFileFilter(filter);
-      if (chooser.showOpenDialog(MainPanel.this) == JFileChooser.APPROVE_OPTION) {
-        File selectedFile = chooser.getSelectedFile();
-        try (FileReader fileReader = new FileReader(selectedFile)) {
-          Plot plot
-              = new PlotReader(
-                  ImmutableList.of(
-                      DataChannel.POSITION_X,
-                      DataChannel.POSITION_Y,
-                      DataChannel.SPEED,
-                      DataChannel.PRESSURE_Z,
-                      DataChannel.YAW,
-                      DataChannel.PITCH))
-              .read(fileReader);
-          setPlot(plot);
-          configureButtons();
-        } catch (IOException | PlotReader.ParseException ex) {
-          // warning message
-          JOptionPane.showMessageDialog(MainPanel.this, "File could not be read!");
-          Logger.getLogger(MainPanel.class.getName()).log(Level.SEVERE, null, ex);
-        }
-      }
+        
+        setPlot(new CircleGenerator().generate());
+        
+//      JFileChooser chooser = new JFileChooser();
+//      FileNameExtensionFilter filter = new FileNameExtensionFilter(
+//          "CSV files", "csv");
+//      chooser.setFileFilter(filter);
+//      if (chooser.showOpenDialog(MainPanel.this) == JFileChooser.APPROVE_OPTION) {
+//        File selectedFile = chooser.getSelectedFile();
+//        try (FileReader fileReader = new FileReader(selectedFile)) {
+//          Plot plot
+//              = new PlotReader(
+//                  ImmutableList.of(
+//                      DataChannel.POSITION_X,
+//                      DataChannel.POSITION_Y,
+//                      DataChannel.SPEED,
+//                      DataChannel.PRESSURE_Z,
+//                      DataChannel.YAW,
+//                      DataChannel.PITCH))
+//              .read(fileReader);
+//          setPlot(plot);
+//          configureButtons();
+//        } catch (IOException | PlotReader.ParseException ex) {
+//          // warning message
+//          JOptionPane.showMessageDialog(MainPanel.this, "File could not be read!");
+//          Logger.getLogger(MainPanel.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//      }
     }
   }
   
